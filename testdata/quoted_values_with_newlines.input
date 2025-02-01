@@ -1,0 +1,5 @@
+a=value1_no_quote b="value2 with spaces" c="value3 with escaped \\backslash" d="value4
+with
+linefeeds" e="value5
+with
+CRLFs"

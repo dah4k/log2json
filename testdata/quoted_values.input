@@ -1,0 +1,1 @@
+a=value1_no_quote b="value2 with spaces" c="value3 with escaped \\backslash" d="value4 with escaped \"quotes\"" e="value5 with single 'quotes'"

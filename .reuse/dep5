@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: clog2json
+Upstream-Contact: dah4k <21900691-dah4k@users.noreply.gitlab.com>
+Source: https://gitlab.com/dah4k/clog2json/
+
+Files: testdata/*
+Copyright: 2025 dah4k
+License: EPL-2.0
