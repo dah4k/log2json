@@ -18,6 +18,7 @@ test: $(PROGRAM) ## Test run program
 .PHONY: memtest
 memtest: $(PROGRAM) ## Memory test program with Valgrind
 	valgrind --tool=memcheck --log-file=$(PROGRAM).vg.log ./$(PROGRAM) testdata/quoted_values.input
+	cat $(PROGRAM).vg.log
 
 .PHONY: clean
 clean: ## Delete program
