@@ -18,7 +18,7 @@ void usage(const char* progname)
 "Usage: %s INPUT_LOG_FILE\n"
 "\n"
 "Parse input log file and print the JSON-ified entries to STDOUT.\n"
-"The expected grammar of the input is:\n"
+"The grammar of the expected input is:\n"
 "\n"
 "    LOG_ENTRY ::= KEY '=' VALUE [ SPACE KEY '=' VALUE ]* NEWLINE\n"
 "    KEY ::= TEXT\n"
