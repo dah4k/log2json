@@ -54,24 +54,25 @@ void ReadBuffer_init(ReadBuffer_t *self, const char *pathname)
         exit(EXIT_FAILURE);
     }
 
-    const size_t data_len = sb.st_size;
-    const int prot = PROT_READ;
-    const int flags = MAP_FILE | MAP_PRIVATE | MAP_POPULATE;
-    void *data = mmap(NULL, data_len, prot, flags, fd, 0);
+    const size_t DataLen = sb.st_size;
+    const int Prot = PROT_READ;
+    const int Flags = MAP_FILE | MAP_PRIVATE | MAP_POPULATE;
+    void *data = mmap(NULL, DataLen, Prot, Flags, fd, 0);
     if (MAP_FAILED == data) {
         fprintf(stderr, "cannot mmap: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     close(fd);  /* no longer needs the file descriptor after mmap */
 
-    rc = madvise(data, data_len, MADV_SEQUENTIAL|MADV_WILLNEED);
+    const int Advice = MADV_SEQUENTIAL | MADV_WILLNEED;
+    rc = madvise(data, DataLen, Advice);
     if (-1 == rc) {
         fprintf(stderr, "cannot madvise '%p': %s\n", data, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     self->data = data;
-    self->data_len = data_len;
+    self->data_len = DataLen;
 }
 
 void ReadBuffer_deinit(ReadBuffer_t *self)
