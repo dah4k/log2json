@@ -15,7 +15,7 @@
 void usage(const char* progname)
 {
     fprintf(stderr,
-"Usage: %s INPUT_LOG_FILE\n"
+"Usage: %s INPUT_LOG_FILE OUTPUT_JSON_FILE\n"
 "\n"
 "Parse input log file and print the JSON-ified entries to STDOUT.\n"
 "The grammar of the expected input is:\n"
@@ -34,23 +34,23 @@ void usage(const char* progname)
     progname);
 }
 
-typedef struct ReadBuffer {
+typedef struct InputFile {
     void *data;
     size_t data_len;
-} ReadBuffer_t;
+} InputFile_t;
 
-void ReadBuffer_init(ReadBuffer_t *self, const char *pathname)
+void InputFile_init(InputFile_t *self, const char *pathname)
 {
     int fd = open(pathname, O_RDONLY);
     if (-1 == fd) {
-        fprintf(stderr, "cannot open '%s': %s\n", pathname, strerror(errno));
+        fprintf(stderr, "fatal open '%s': %s\n", pathname, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     struct stat sb;
     int rc = fstat(fd, &sb);
     if (-1 == rc) {
-        fprintf(stderr, "cannot fstat '%s': %s\n", pathname, strerror(errno));
+        fprintf(stderr, "fatal fstat '%s': %s\n", pathname, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -59,7 +59,7 @@ void ReadBuffer_init(ReadBuffer_t *self, const char *pathname)
     const int Flags = MAP_FILE | MAP_PRIVATE | MAP_POPULATE;
     void *data = mmap(NULL, DataLen, Prot, Flags, fd, 0);
     if (MAP_FAILED == data) {
-        fprintf(stderr, "cannot mmap: %s\n", strerror(errno));
+        fprintf(stderr, "fatal mmap: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     close(fd);  /* no longer needs the file descriptor after mmap */
@@ -67,7 +67,7 @@ void ReadBuffer_init(ReadBuffer_t *self, const char *pathname)
     const int Advice = MADV_SEQUENTIAL | MADV_WILLNEED;
     rc = madvise(data, DataLen, Advice);
     if (-1 == rc) {
-        fprintf(stderr, "cannot madvise '%p': %s\n", data, strerror(errno));
+        fprintf(stderr, "fatal madvise '%p': %s\n", data, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -75,23 +75,24 @@ void ReadBuffer_init(ReadBuffer_t *self, const char *pathname)
     self->data_len = DataLen;
 }
 
-void ReadBuffer_deinit(ReadBuffer_t *self)
+void InputFile_deinit(InputFile_t *self)
 {
     munmap(self->data, self->data_len);
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
+    if (argc != 3) {
         usage(argv[0]);
         exit(EXIT_FAILURE);
     }
-    const char * pathname = argv[1];
+    const char *InputPathName = argv[1];
+    const char *OutputPathName= argv[2];
 
-    ReadBuffer_t memfile;
-    ReadBuffer_init(&memfile, pathname);
-    fprintf(stderr, "[DEBUG] %s is %lu bytes\n", pathname, memfile.data_len);
-    ReadBuffer_deinit(&memfile);
-
+    InputFile_t memfile;
+    InputFile_init(&memfile, InputPathName);
+    fprintf(stderr, "[DEBUG] %s is %lu bytes\n",
+            InputPathName, memfile.data_len);
+    InputFile_deinit(&memfile);
     return EXIT_SUCCESS;
 }

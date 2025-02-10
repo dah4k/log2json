@@ -13,11 +13,11 @@ all: $(PROGRAM) ## Build program
 
 .PHONY: test
 test: $(PROGRAM) ## Test run program
-	./$< testdata/quoted_values.input | jq .
+	./$< testdata/quoted_values.input testdata/quoted_values.json | jq .
 
 .PHONY: memtest
 memtest: $(PROGRAM) ## Memory test program with Valgrind
-	valgrind --tool=memcheck --log-file=$(PROGRAM).vg.log ./$(PROGRAM) testdata/quoted_values.input
+	valgrind --tool=memcheck --log-file=$(PROGRAM).vg.log ./$(PROGRAM) testdata/quoted_values.input testdata/quoted_values.json
 	cat $(PROGRAM).vg.log
 
 .PHONY: clean
