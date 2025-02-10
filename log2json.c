@@ -5,6 +5,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>     /* POSIX basename() and dirname() */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,6 +81,90 @@ void InputFile_deinit(InputFile_t *self)
     munmap(self->data, self->data_len);
 }
 
+typedef struct OutputFile {
+    FILE *ostream;
+    char *in_progress_pathname;
+    char *done_pathname;
+} OutputFile_t;
+
+void OutputFile_init(OutputFile_t *self,  const char *pathname)
+{
+    char *done_pathname = strdup(pathname);
+    if (NULL == done_pathname) {
+        fprintf(stderr, "fatal strdup '%s': %s\n",
+                pathname, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    char *in_progress_pathname = malloc(
+            strlen(".") + strlen("/.") + strlen(pathname));
+    if (NULL == in_progress_pathname) {
+        fprintf(stderr, "fatal malloc: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    in_progress_pathname[0] = '\0';
+
+    char *tmp = strdup(pathname);
+    if (NULL == tmp) {
+        fprintf(stderr, "fatal strdup '%s': %s\n",
+                pathname, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    strcat(in_progress_pathname, dirname(tmp));
+    strcat(in_progress_pathname, "/.");
+    free(tmp);
+
+    tmp = strdup(pathname);
+    if (NULL == tmp) {
+        fprintf(stderr, "fatal strdup '%s': %s\n",
+                pathname, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    strcat(in_progress_pathname, basename(tmp));
+    free(tmp);
+
+    FILE *ostream = NULL;
+    {
+        ostream = fopen(in_progress_pathname, "w");
+        if (NULL == ostream) {
+            fprintf(stderr, "fatal fopen '%s': %s\n",
+                    in_progress_pathname, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    self->ostream = ostream;
+    self->in_progress_pathname = in_progress_pathname;
+    self->done_pathname = done_pathname;
+}
+
+void OutputFile_deinit(OutputFile_t *self)
+{
+    int rc = fclose(self->ostream);
+    if (EOF == rc) {
+        fprintf(stderr, "warning fclose '%s': %s\n",
+                self->in_progress_pathname, strerror(errno));
+    }
+
+    // NOTE: Use link(2) to avoid overwriting existing file
+    rc = link(self->in_progress_pathname, self->done_pathname);
+    if (-1 == rc) {
+        fprintf(stderr, "warning link-rename '%s' to '%s': %s\n",
+                self->in_progress_pathname,
+                self->done_pathname, strerror(errno));
+    } else {
+        // Rename was successful, in_progress_pathname may be deleted.
+        rc = unlink(self->in_progress_pathname);
+        if (-1 == rc) {
+            fprintf(stderr, "warning unlink-delete '%s': %s\n",
+                    self->in_progress_pathname, strerror(errno));
+        }
+    }
+
+    free(self->in_progress_pathname);
+    free(self->done_pathname);
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
@@ -93,6 +178,11 @@ int main(int argc, char *argv[])
     InputFile_init(&memfile, InputPathName);
     fprintf(stderr, "[DEBUG] %s is %lu bytes\n",
             InputPathName, memfile.data_len);
+
+    OutputFile_t jsonfile;
+    OutputFile_init(&jsonfile, OutputPathName);
+    OutputFile_deinit(&jsonfile);
+
     InputFile_deinit(&memfile);
     return EXIT_SUCCESS;
 }
