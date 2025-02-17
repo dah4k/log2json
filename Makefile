@@ -13,7 +13,7 @@ all: $(PROGRAM) ## Build program
 
 .PHONY: test
 test: $(PROGRAM) ## Test run program
-	./$< testdata/quoted_values.input testdata/quoted_values.json | jq .
+	./$< testdata/quoted_values.input testdata/quoted_values.json
 
 .PHONY: memtest
 memtest: $(PROGRAM) ## Memory test program with Valgrind
@@ -24,6 +24,7 @@ memtest: $(PROGRAM) ## Memory test program with Valgrind
 clean: ## Delete program
 	rm -f $(PROGRAM)
 	rm -f *.log
+	rm -f testdata/quoted_values.json
 
 .PHONY: help usage
 help usage:

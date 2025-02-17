@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>     /* POSIX basename() and dirname() */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,9 @@ void usage(const char* progname)
     progname);
 }
 
+///////////////////////////////////////////////////////////////////////////
+//  InputFile
+///////////////////////////////////////////////////////////////////////////
 typedef struct InputFile {
     void *data;
     size_t data_len;
@@ -81,6 +85,9 @@ void InputFile_deinit(InputFile_t *self)
     munmap(self->data, self->data_len);
 }
 
+///////////////////////////////////////////////////////////////////////////
+//  OutputFile
+///////////////////////////////////////////////////////////////////////////
 typedef struct OutputFile {
     FILE *ostream;
     char *in_progress_pathname;
@@ -165,6 +172,14 @@ void OutputFile_deinit(OutputFile_t *self)
     free(self->done_pathname);
 }
 
+size_t OutputFile_write(OutputFile_t *self, const uint8_t* data, size_t data_len)
+{
+    return fwrite(data, sizeof(uint8_t), data_len, self->ostream);
+}
+
+///////////////////////////////////////////////////////////////////////////
+//  Main
+///////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
@@ -176,13 +191,11 @@ int main(int argc, char *argv[])
 
     InputFile_t memfile;
     InputFile_init(&memfile, InputPathName);
-    fprintf(stderr, "[DEBUG] %s is %lu bytes\n",
-            InputPathName, memfile.data_len);
 
     OutputFile_t jsonfile;
     OutputFile_init(&jsonfile, OutputPathName);
-    OutputFile_deinit(&jsonfile);
 
+    OutputFile_deinit(&jsonfile);
     InputFile_deinit(&memfile);
     return EXIT_SUCCESS;
 }
