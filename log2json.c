@@ -178,6 +178,17 @@ size_t OutputFile_write(OutputFile_t *self, const uint8_t* data, size_t data_len
 }
 
 ///////////////////////////////////////////////////////////////////////////
+//  Processor
+///////////////////////////////////////////////////////////////////////////
+
+static void testCopyFile(OutputFile_t *destination, const InputFile_t *source)
+{
+    size_t written = OutputFile_write(destination, source->data, source->data_len);
+    fprintf(stderr, "[DEBUG] copied %lu bytes\n", written);
+}
+
+
+///////////////////////////////////////////////////////////////////////////
 //  Main
 ///////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
@@ -194,6 +205,8 @@ int main(int argc, char *argv[])
 
     OutputFile_t jsonfile;
     OutputFile_init(&jsonfile, OutputPathName);
+
+    testCopyFile(&jsonfile, &memfile);
 
     OutputFile_deinit(&jsonfile);
     InputFile_deinit(&memfile);
