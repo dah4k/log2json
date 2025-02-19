@@ -1,16 +1,16 @@
-// Copyright 2025 dah4k
-// SPDX-License-Identifier: EPL-2.0
+<!--
+Copyright 2025 dah4k
+SPDX-License-Identifier: EPL-2.0
+-->
 
-= Log2Json
-:!webfonts:
+# Log2Json
 
 A small program for converting legacy logs to JSON.
 
 
-== Log Parser State Machine
+## Log Parser State Machine
 
-[mermaid]
-....
+```mermaid
 [*] --> StartLogEntry
 
 StartLogEntry --> InKey : TEXT
@@ -39,5 +39,5 @@ EndQuotedValue --> InKey : SPACE
 EndQuotedValue --> StartLogEntry : NEWLINE
 EndQuotedValue --> [*] : EOF
 EndQuotedValue --> Error
-....
+```
 
